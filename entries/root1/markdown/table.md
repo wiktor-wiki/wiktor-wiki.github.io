@@ -2,11 +2,11 @@ Duis sunt ut pariatur reprehenderit mollit mollit magna dolore in pariatur nulla
 
 | Table Heading 1 | Table Heading 2 | Center align | Right align | Table Heading 5 |
 | :-------------- | :-------------- | :----------: | ----------: | :-------------- |
-| Item 1          | Item 2          | Item 3       | Item 4      | Item 5          |
-| Item 1          | Item 2          | Item 3       | Item 4      | Item 5          |
-| Item 1          | Item 2          | Item 3       | Item 4      | Item 5          |
-| Item 1          | Item 2          | Item 3       | Item 4      | Item 5          |
-| Item 1          | Item 2          | Item 3       | Item 4      | Item 5          |
+| Item 1          | Item 2          |    Item 3    |      Item 4 | Item 5          |
+| Item 1          | Item 2          |    Item 3    |      Item 4 | Item 5          |
+| Item 1          | Item 2          |    Item 3    |      Item 4 | Item 5          |
+| Item 1          | Item 2          |    Item 3    |      Item 4 | Item 5          |
+| Item 1          | Item 2          |    Item 3    |      Item 4 | Item 5          |
 
 Minim id consequat adipisicing cupidatat laborum culpa veniam non consectetur et duis pariatur reprehenderit eu ex consectetur. Sunt nisi qui eiusmod ut cillum laborum Lorem officia aliquip laboris ullamco nostrud laboris non irure laboris. Cillum dolore labore Lorem deserunt mollit voluptate esse incididunt ex dolor.
 
