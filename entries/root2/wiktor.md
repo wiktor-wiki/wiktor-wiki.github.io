@@ -14,6 +14,3 @@ When I think it has the features I think it should need, it will hit v1 and I wi
 
 -  [Markdown example set](/markdown/index)
 -  [Usage Reference](/reference/index)
-
-asd
-aa
