@@ -1,21 +1,31 @@
 ```lua
---[[
-   This is an example Range iterator implementation
---]]
+require 'rubble'
 
-function range(from, to, step)
-  step = step or 1
+vector2 = struct {
+   x = "number",
+   y = "number",
+}
 
-  local iter = function(_, lastvalue)
-    local nextvalue = lastvalue + step
+vector2: impl {
+   length = function(self)
+      return math.sqrt(self.x * self.x + self.y * self.y)
+   end;
+}
 
-    if step > 0 and nextvalue <= to or step < 0 and nextvalue >= to or
-       step == 0
-    then
-      return nextvalue
-    end
-  end
+add = trait {
+   add = function(self, other)end
+}
 
-  return iter, nil, from - step
-end
+
+add: impl (vector2) {
+   add = function(self, other)
+      return vector2 { x = self.x + other.x, y = self.y + other.y }
+   end;
+}
+
+local v1 = vector2{x=1, y=2}
+local v2 = vector2{x=2, y=1}
+local v3 = v1:add(v2)
+
+print(v3.x, v3.y, v3:length())
 ```
