@@ -1,0 +1,35 @@
+table {
+   min-width: 0;
+}
+
+table .rd-th {
+   display: none;
+}
+
+@media (max-width: 768px) {
+   table thead {
+      display: none;
+   }
+   table td {
+      text-align: left;
+      margin-left: 20px;
+   }
+   table .rd-th {
+      display: block;
+      font-weight: bold;
+      color: var(--accent);
+      margin-left: -20px;
+   }
+   table tr {
+      display: flex;
+      flex-flow: column;
+      padding: 10px 0;
+   }
+   table tr:first-child {
+      padding-top: 0;
+   }
+   table tr:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+   }
+}

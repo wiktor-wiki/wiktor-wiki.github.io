@@ -1,4 +1,9 @@
 /**
+ * @copyright Daniels Kursits (evolbug), 2019 <https://github.com/evolbug>
+ * @license MIT license <https://opensource.org/licenses/MIT>
+ */
+
+/**
  * Widget base
  */
 class Widget extends Fragment {
@@ -11,68 +16,77 @@ class Widget extends Fragment {
         this.icon = icon;
         this.text = text;
         this.menu = Array.isArray(menu) ? { values: menu } : menu;
+        this.persist = {};
+
         if (menu && menu.persist) {
             this.persist = new Persistor(this.constructor.name);
             this.persist.remember();
-            if (this.persist.value !== undefined) {
-                this.action(this.parent, this.persist.value);
-            }
         }
-        this.onload(this.parent);
+
+        this.onload(this.parent, this.persist.value);
     }
 
     /**
      * Prep after widget has been created on an instance
+
      * @param {Fragment} parent
+     * @param {any} init
      */
-    onload(parent) {}
+    onload(parent, init) {}
 
     /**
      * Onclick or menu selection callback
+     *
      * @param {Fragment} parent
      * @param {string[]} selection
      */
     action(parent, selection) {}
 
-    get template() {
+    renderMenu() {
         let self = this;
-        if (this.menu) {
-            return html`
-                <menu class="widget my-auto ml-2 px-0">
-                    <i class="material-icons mt-auto">${this.icon}</i>
-                    <select
-                        onchange=${function() {
-                            if (self.menu.persist)
-                                self.persist.value = this.value;
-                            self.action(self.parent, this.value);
-                        }}
-                    >
-                        <option disabled selected>${this.text}</option>
-                        ${this.menu.values.map(
-                            item =>
-                                html`
-                                    <option
-                                        selected=${this.menu.persist &&
-                                            this.persist.value == item}
-                                    >
-                                        ${item}
-                                    </option>
-                                `
-                        )}
-                    </select>
-                    <i class="material-icons arrow">arrow_drop_down</i>
-                </menu>
-            `;
-        } else {
-            return html`
-                <button
-                    class="widget my-auto ml-2 px-0"
-                    onclick=${() => this.action(this.parent)}
+        return html`
+            <menu class="widget my-auto ml-2 px-0">
+                <i class="material-icons mt-auto">${this.icon}</i>
+                <select
+                    onchange=${function() {
+                        if (self.menu.persist) self.persist.value = this.value;
+                        self.action(self.parent, this.value);
+                    }}
                 >
-                    <i class="material-icons">${this.icon}</i>${this.text}
-                </button>
-            `;
+                    <option disabled selected>${this.text}</option>
+                    ${this.menu.values.map(
+                        item =>
+                            html`
+                                <option
+                                    selected=${this.menu.persist &&
+                                        this.persist.value == item}
+                                >
+                                    ${item}
+                                </option>
+                            `
+                    )}
+                </select>
+                <i class="material-icons arrow">arrow_drop_down</i>
+            </menu>
+        `;
+    }
+
+    renderButton() {
+        return html`
+            <button
+                class="widget my-auto ml-2 px-0"
+                onclick=${() => this.action(this.parent)}
+            >
+                <i class="material-icons">${this.icon}</i>${this.text}
+            </button>
+        `;
+    }
+
+    get template() {
+        if (this.menu) {
+            return this.renderMenu();
         }
+        return this.renderButton();
     }
 }
 
@@ -81,7 +95,7 @@ class Widget extends Fragment {
  */
 class Wiktor extends Fragment {
     static get version() {
-        return "0.6.0";
+        return "0.6.1";
     }
 
     /**
@@ -107,49 +121,54 @@ class Wiktor extends Fragment {
         this.entriesOpen = {};
         this.cache = {
             entries: new Persistor("entry-cache"),
-            extensions: new Persistor("ext-cache"),
+            addons: new Persistor("ext-cache"),
             indexes: new Persistor("index-cache"),
         };
 
         if (this.cache.indexes.version != Wiktor.version) {
             this.cache.entries.forget();
-            this.cache.extensions.forget();
+            this.cache.addons.forget();
             this.cache.indexes.forget();
             this.cache.indexes.version = Wiktor.version;
         }
         this.cache.indexes.remember("version");
 
-        Fetch("wiktor/addon/registry.json", {
+        Fetch("wiktor/addon/index.json", {
             cache: this.cache.indexes,
             done: data => {
-                let extensions = JSON.parse(data);
-                let promises = extensions.map(
-                    extension =>
+                let addons = JSON.parse(data);
+                let promises = addons.map(
+                    addon =>
                         new Promise((resolve, reject) =>
-                            this.loadExtension(extension, resolve, reject)
+                            this.loadAddon(addon, resolve, reject)
                         )
                 );
 
                 Promise.all(promises)
                     .then(result => {
-                        result.forEach(extension => {
-                            if (extension.src === undefined) {
-                                console.warn(
-                                    "extension not loaded: " + extension.name
-                                );
+                        result.forEach(addon => {
+                            if (addon.src === undefined) {
+                                console.warn("addon not loaded: " + addon.name);
                                 return;
                             }
-                            let script = document.createElement("script");
-                            script.src =
-                                "data:text/javascript;base64," +
-                                btoa(extension.src);
-                            script.async = false;
-                            script.onload = function() {
-                                console.info(
-                                    "loaded extension: " + extension.name
-                                );
-                            };
-                            document.head.appendChild(script);
+
+                            let loader = null;
+                            if (addon.type == ".js") {
+                                loader = document.createElement("script");
+                                loader.async = false;
+                                loader.innerHTML = addon.src;
+                                loader.src =
+                                    "data:text/javascript;base64," +
+                                    btoa(addon.src);
+                            } else if (addon.type == ".css") {
+                                loader = document.createElement("style");
+                                loader.src = addon.name;
+                                loader.innerHTML = addon.src;
+                            }
+
+                            loader.onload = () =>
+                                console.info("loaded addon: " + addon.name);
+                            document.head.appendChild(loader);
                         });
                     })
                     .then(() =>
@@ -177,21 +196,38 @@ class Wiktor extends Fragment {
         });
     }
 
-    get entryRoot() {
-        return this._entryRoot;
-    }
-
     get template() {
         return html`
-            <main class="row flex-lg-nowrap h-min-0">
-                <div class="nav col-12 col-lg-2 py-2 overflow-auto">
-                    ${this.navigation()}
-                </div>
-                <div class="col-12 col-lg px-0 px-md-3 overflow-auto">
-                    ${this.entries.map(e => e())}
-                </div>
+            ${this.renderMain()}
+        `;
+    }
+
+    renderMain() {
+        return html`
+            <main class="row flex-lg-nowrap" style="min-height:0">
+                ${this.renderNavigation()} ${this.renderEntries()}
             </main>
         `;
+    }
+
+    renderNavigation() {
+        return html`
+            <div class="nav col-12 col-lg-3 py-2 overflow-auto">
+                ${this.navigation()}
+            </div>
+        `;
+    }
+
+    renderEntries() {
+        return html`
+            <div class="col-12 col-lg px-0 px-md-3 overflow-auto">
+                ${this.entries.map(e => e())}
+            </div>
+        `;
+    }
+
+    get entryRoot() {
+        return this._entryRoot;
     }
 
     /**
@@ -204,29 +240,32 @@ class Wiktor extends Fragment {
     }
 
     /**
-     * Load an extension from url
-     * @param {string} extension
+     * Load an addon from url
+     * @param {string} addon
      * @param {function} resolve
      * @param {function} reject
      */
-    loadExtension(extension, resolve, reject) {
-        Fetch(
-            extension.startsWith("//")
-                ? extension + ".js"
-                : `wiktor/addon/${extension}.js`,
-            {
-                cache: this.cache.extensions,
-                done: (data, xhr) => {
-                    if (xhr.status == 200) {
-                        this.cache.entries.forget();
-                    }
-                    resolve({ src: data, name: extension });
-                },
-                fail: () => {
-                    resolve({ name: extension });
-                },
-            }
-        );
+    loadAddon(addon, resolve, reject) {
+        let addonUrl = addon.startsWith("//")
+            ? addon + ".js"
+            : `wiktor/addon/${addon}`;
+
+        Fetch(addonUrl, {
+            cache: this.cache.addons,
+            done: (data, xhr) => {
+                if (xhr.status == 200) {
+                    this.cache.entries.forget();
+                }
+                resolve({
+                    src: data,
+                    name: addon,
+                    type: addon.match(/\.\w+$/)[0],
+                });
+            },
+            fail: () => {
+                resolve({ name: addon });
+            },
+        });
     }
 
     /**
@@ -263,11 +302,11 @@ class Wiktor extends Fragment {
 
     /**
      * Add entry content processor (Markdown, etc)
-     * @param {string} extension
+     * @param {string} addon
      * @param {function(string)} processor
      */
-    static addProcessor(extension, processor) {
-        this.processors[extension] = processor;
+    static addProcessor(addon, processor) {
+        this.processors[addon] = processor;
     }
 
     /**
@@ -279,13 +318,13 @@ class Wiktor extends Fragment {
     }
 
     /**
-     * Process entry content based on given extension
+     * Process entry content based on given file extension
      * @param {string} content
-     * @param {string} extension
+     * @param {string} ext
      */
-    process(content, extension) {
-        return Wiktor.processors[extension]
-            ? Wiktor.processors[extension](content)
+    process(content, ext) {
+        return Wiktor.processors[ext]
+            ? Wiktor.processors[ext](content)
             : content;
     }
 
@@ -296,7 +335,6 @@ class Wiktor extends Fragment {
     postProcess(content) {
         content = $("<div>" + content + "</div>");
         Wiktor.postProcessors.forEach(process => process(content));
-        // console.log(content[0].innerHTML);
         return content[0].innerHTML;
     }
 
@@ -305,6 +343,14 @@ class Wiktor extends Fragment {
      * @param {string[]} paths
      */
     loadEntries(paths) {
+        if (paths.length == 0) {
+            this.cache.entries["!empty/"] = {
+                data: "<p>This notebook appears to be empty</p>",
+            };
+            this.openEntry("Empty Notebook", "!empty");
+            return;
+        }
+
         let entryName = false;
         let landing = false;
 
@@ -312,7 +358,6 @@ class Wiktor extends Fragment {
             landing = this.entryPath(
                 window.location.search + window.location.hash
             );
-
             entryName = this.entryName(window.location.search);
         } else if (this.landing) {
             landing = this.entryPath(this.landing);
@@ -378,26 +423,13 @@ class Wiktor extends Fragment {
 
             if (this.cache.entries[path]) {
                 document.title = name;
-
                 this.entries.push(
-                    new Entry(
-                        this,
-                        name,
-                        this.cache.entries[path].data,
-                        path,
-                        this.cache.entries[path].url
-                    )
+                    new Entry(this, name, this.cache.entries[path].data, path)
                 );
             } else {
                 document.title = "404";
                 this.entries.push(
-                    new Entry(
-                        this,
-                        "404",
-                        `<p>${path} was not found</p>`,
-                        path,
-                        path
-                    )
+                    new Entry(this, "404", `<p>${path} was not found</p>`, path)
                 );
             }
 
@@ -541,7 +573,11 @@ class NavItem extends Fragment {
 
     get template() {
         return html`
-            <a href=${this.link} onclick=${e => this.openEntry(e)}>
+            <a
+                href=${this.link}
+                onclick=${e => this.openEntry(e)}
+                title=${this.name}
+            >
                 <li class="nav-item">
                     ${this.name}
                 </li>
@@ -628,4 +664,5 @@ class Entry extends Fragment {
         this.parent.closeEntry(this._proxy);
     }
 }
+
 Entry.widgets = [];

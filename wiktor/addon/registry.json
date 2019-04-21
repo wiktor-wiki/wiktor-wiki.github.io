@@ -1,12 +1,17 @@
 [
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/processor/showdown",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/post-processor/code-highlight",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/post-processor/inner-entry-link",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/post-processor/responsive-tables",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/widget/header/header",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/widget/header/title",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/widget/header/version",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/widget/header/theme-switch",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/navigation/active-entry",
-    "//gitcdn.link/cdn/wiktor-wiki/addons/master/widget/entry/reload"
+    "entry/processor/showdown.js",
+    "entry/post-processor/code-highlight.js",
+    "entry/post-processor/code-highlight.css",
+    "entry/post-processor/inner-entry-link.js",
+    "entry/post-processor/responsive-tables.js",
+    "entry/post-processor/responsive-tables.css",
+    "entry/widget/reload.js",
+    "header/header.js",
+    "header/header.css",
+    "header/widget/title.js",
+    "header/widget/version.js",
+    "themer/themer.js",
+    "themer/themer-dark.js",
+    "themer/themer-dark.css",
+    "navigation/active-entry.js"
 ]

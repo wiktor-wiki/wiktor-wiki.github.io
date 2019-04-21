@@ -1,0 +1,24 @@
+.dark {
+   --page-fg: #aaa;
+   --page-bg: #000;
+   --nav-fg: #bbb;
+   --nav-bg: #000;
+   --entry-fg: #aaa;
+   --entry-bg: #111;
+   --entry-header-fg: #bbb;
+   --entry-header-bg: #111;
+   --entry-header-border: none;
+   --widget-fg: #bbb;
+   --widget-bg: #111;
+   --scrollbar: #fff2;
+   --c-comment: #656d78;
+   --c-punctuation: #656d78;
+}
+
+/* Header addon */
+
+.dark {
+   --header-fg: #bbb;
+   --header-bg: #000;
+   --header-border: none;
+}
