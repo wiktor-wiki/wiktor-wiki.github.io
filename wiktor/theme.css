@@ -1,8 +1,8 @@
 /* Config ------------------------------------------------------------------ */
 
 :root {
-    --font-code: monospace;
-    --font-text: sans-serif;
+    --font-code: "Share Tech Mono", monospace;
+    --font-text: Rubik, sans-serif;
     --accent: #af3f6e;
     --page-bg: #f0f0f0;
     --page-fg: #333;
